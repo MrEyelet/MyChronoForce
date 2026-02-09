@@ -5,6 +5,7 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [time, setTime] = useState(0); // ms
   const [forcedNumbers, setForcedNumbers] = useState([]);
+  const inputRefs = useRef({});
   const [forcedIndex, setForcedIndex] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [laps, setLaps] = useState([]);
@@ -98,14 +99,6 @@ export default function App() {
               <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Zamknij">×</button>
             </div>
             <div className="modal-body">
-              <button
-                className="add-number-btn"
-                onClick={() => setForcedNumbers(prev => [...prev, ''])}
-                aria-label="Dodaj liczbę"
-              >
-                <span className="plus-icon">+</span>
-              </button>
-
               <div className="forced-numbers-list">
                 {forcedNumbers.map((n, i) => (
                   <div key={i} className="forced-number-item">
@@ -114,6 +107,7 @@ export default function App() {
                       type="number"
                       min="0"
                       max="99"
+                      ref={(el) => { inputRefs.current[i] = el }}
                       value={n}
                       onChange={(e) => {
                         const v = e.target.value.replace(/\D/g, '');
@@ -140,10 +134,33 @@ export default function App() {
                 ))}
               </div>
 
+              <button
+                className="add-number-btn"
+                onClick={() => {
+                  const newIndex = forcedNumbers.length;
+                  setForcedNumbers(prev => [...prev, '']);
+                  setTimeout(() => {
+                    const el = inputRefs.current[newIndex];
+                    if (el && typeof el.focus === 'function') {
+                      el.focus();
+                      if (typeof el.scrollIntoView === 'function') {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                      }
+                    }
+                  }, 0);
+                }}
+                aria-label="Dodaj liczbę"
+              >
+                <span className="plus-icon">+</span>
+              </button>
+
               {forcedNumbers.length > 0 && (
                 <button
                   className="clear-all-btn"
-                  onClick={() => setForcedNumbers([])}
+                  onClick={() => {
+                    setForcedNumbers([]);
+                    inputRefs.current = {};
+                  }}
                 >
                   Wyczyść wszystkie
                 </button>
