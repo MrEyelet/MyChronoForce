@@ -15,30 +15,46 @@ export default function App() {
   const [laps, setLaps] = useState([]);
   const intervalRef = useRef(null);
 
+  const STORAGE_KEYS = {
+    numbers: 'mychrono_forcedNumbers_v1',
+    mode: 'mychrono_useForced_v1'
+  };
+
+  const updateForcedNumbers = (arr) => {
+    const normalized = arr.map(x => (x === '' ? '' : String(x || '0').padStart(2, '0')));
+    setForcedNumbers(normalized);
+    try {
+      localStorage.setItem(STORAGE_KEYS.numbers, JSON.stringify(normalized));
+    } catch (e) {
+      // ignore
+    }
+  };
+
   // Load persisted forced numbers and mode from localStorage
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('forcedNumbers');
+      const raw = localStorage.getItem(STORAGE_KEYS.numbers);
       if (raw) {
         const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) setForcedNumbers(arr.map(x => String(x)));
+        if (Array.isArray(arr)) {
+          const normalized = arr.map(x => (x === '' ? '' : String(x || '0').padStart(2, '0')));
+          setForcedNumbers(normalized);
+          setForcedIndex(0);
+        }
       }
-      const mode = localStorage.getItem('useForced');
+      const mode = localStorage.getItem(STORAGE_KEYS.mode);
       if (mode !== null) setUseForced(mode === '1');
     } catch (e) {
       // ignore
     }
   }, []);
 
-  // Persist forced numbers and mode
+  // Persist mode when it changes
   useEffect(() => {
     try {
-      localStorage.setItem('forcedNumbers', JSON.stringify(forcedNumbers));
-      localStorage.setItem('useForced', useForced ? '1' : '0');
-    } catch (e) {
-      // ignore
-    }
-  }, [forcedNumbers, useForced]);
+      localStorage.setItem(STORAGE_KEYS.mode, useForced ? '1' : '0');
+    } catch (e) {}
+  }, [useForced]);
 
   useEffect(() => {
     if (isRunning) {
@@ -156,7 +172,9 @@ export default function App() {
                       value={n}
                       onChange={(e) => {
                         const v = e.target.value.replace(/\D/g, '');
-                        setForcedNumbers(prev => prev.map((x, idx) => idx === i ? v : x));
+                        const next = forcedNumbers.slice();
+                        next[i] = v;
+                        updateForcedNumbers(next);
                       }}
                       onBlur={(e) => {
                         let v = parseInt(e.target.value, 10);
@@ -164,25 +182,25 @@ export default function App() {
                         if (v < 0) v = 0;
                         if (v > 99) v = 99;
                         const s = String(v).padStart(2, '0');
-                        setForcedNumbers(prev => prev.map((x, idx) => idx === i ? s : x));
+                        const next = forcedNumbers.slice();
+                        next[i] = s;
+                        updateForcedNumbers(next);
                       }}
                       placeholder="00"
                     />
                     <button
                       className="delete-number-btn"
                       onClick={() => {
-                        setForcedNumbers(prev => {
-                          const next = prev.filter((_, idx) => idx !== i);
-                          setForcedIndex(fi => Math.min(fi, next.length));
-                          const newRefs = {};
-                          let j = 0;
-                          for (let k = 0; k < prev.length; k++) {
-                            if (k === i) continue;
-                            newRefs[j++] = inputRefs.current[k];
-                          }
-                          inputRefs.current = newRefs;
-                          return next;
-                        });
+                        const next = forcedNumbers.filter((_, idx) => idx !== i);
+                        setForcedIndex(fi => Math.min(fi, next.length));
+                        const newRefs = {};
+                        let j = 0;
+                        for (let k = 0; k < forcedNumbers.length; k++) {
+                          if (k === i) continue;
+                          newRefs[j++] = inputRefs.current[k];
+                        }
+                        inputRefs.current = newRefs;
+                        updateForcedNumbers(next);
                       }}
                       aria-label={`Usuń ${n}`}
                     >
@@ -196,7 +214,8 @@ export default function App() {
                 className="add-number-btn"
                 onClick={() => {
                   const newIndex = forcedNumbers.length;
-                  setForcedNumbers(prev => [...prev, '']);
+                  const next = [...forcedNumbers, ''];
+                  updateForcedNumbers(next);
                   setTimeout(() => {
                     const el = inputRefs.current[newIndex];
                     if (el && typeof el.focus === 'function') {
@@ -212,11 +231,25 @@ export default function App() {
                 <span className="plus-icon">+</span>
               </button>
 
+              <button
+                className="add-number-btn"
+                onClick={() => {
+                  const today = new Date();
+                  const dd = String(today.getDate()).padStart(2, '0');
+                  const mm = String(today.getMonth() + 1).padStart(2, '0');
+                  const rr = String(today.getFullYear() % 100).padStart(2, '0');
+                  updateForcedNumbers([...forcedNumbers, dd, mm, rr]);
+                }}
+                aria-label="Dzisiejsza data"
+              >
+                Dzisiejsza data
+              </button>
+
               {forcedNumbers.length > 0 && (
                 <button
                   className="clear-all-btn"
                   onClick={() => {
-                    setForcedNumbers([]);
+                    updateForcedNumbers([]);
                     inputRefs.current = {};
                     setForcedIndex(0);
                   }}

@@ -446,6 +446,9 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 .add-number-btn:hover {
