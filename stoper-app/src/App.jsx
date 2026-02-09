@@ -39,15 +39,15 @@ export default function App() {
   const lap = () => {
     if (!isRunning) return;
     let recordMs = time;
-    if (forcedNumbers.length > 0) {
+    if (forcedNumbers.length > 0 && forcedIndex < forcedNumbers.length) {
       const totalSeconds = Math.floor(time / 1000);
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
-      const idx = forcedIndex % forcedNumbers.length;
-      const raw = parseInt(forcedNumbers[idx], 10);
+      const raw = parseInt(forcedNumbers[forcedIndex], 10);
       const centis = Number.isNaN(raw) ? Math.floor((time % 1000) / 10) : Math.max(0, Math.min(99, raw));
       recordMs = minutes * 60000 + seconds * 1000 + centis * 10;
-      setForcedIndex(fi => (forcedNumbers.length > 0 ? (fi + 1) % forcedNumbers.length : fi));
+      const nextIndex = forcedIndex + 1;
+      setForcedIndex(nextIndex);
     }
     setLaps(prev => [...prev, recordMs]);
   };
@@ -125,7 +125,20 @@ export default function App() {
                     />
                     <button
                       className="delete-number-btn"
-                      onClick={() => setForcedNumbers(prev => prev.filter((_, idx) => idx !== i))}
+                      onClick={() => {
+                        setForcedNumbers(prev => {
+                          const next = prev.filter((_, idx) => idx !== i);
+                          setForcedIndex(fi => Math.min(fi, next.length));
+                          const newRefs = {};
+                          let j = 0;
+                          for (let k = 0; k < prev.length; k++) {
+                            if (k === i) continue;
+                            newRefs[j++] = inputRefs.current[k];
+                          }
+                          inputRefs.current = newRefs;
+                          return next;
+                        });
+                      }}
                       aria-label={`Usuń ${n}`}
                     >
                       ×
@@ -160,6 +173,7 @@ export default function App() {
                   onClick={() => {
                     setForcedNumbers([]);
                     inputRefs.current = {};
+                    setForcedIndex(0);
                   }}
                 >
                   Wyczyść wszystkie
