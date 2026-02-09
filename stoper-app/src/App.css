@@ -16,6 +16,7 @@
   align-items: center;
   padding: 20px 24px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .app-title {
@@ -24,6 +25,35 @@
   color: #ffffff;
   margin: 0;
   letter-spacing: 1px;
+}
+
+.app-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 1px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hint-bubble {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  z-index: 1100;
+  pointer-events: none;
+  opacity: 0.95;
 }
 
 .menu-icon {

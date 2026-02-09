@@ -7,9 +7,38 @@ export default function App() {
   const [forcedNumbers, setForcedNumbers] = useState([]);
   const inputRefs = useRef({});
   const [forcedIndex, setForcedIndex] = useState(0);
+  const [useForced, setUseForced] = useState(true);
+  const [showHint, setShowHint] = useState(false);
+  const [hintText, setHintText] = useState('');
+  const hintTimer = useRef(null);
   const [isRunning, setIsRunning] = useState(false);
   const [laps, setLaps] = useState([]);
   const intervalRef = useRef(null);
+
+  // Load persisted forced numbers and mode from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('forcedNumbers');
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) setForcedNumbers(arr.map(x => String(x)));
+      }
+      const mode = localStorage.getItem('useForced');
+      if (mode !== null) setUseForced(mode === '1');
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  // Persist forced numbers and mode
+  useEffect(() => {
+    try {
+      localStorage.setItem('forcedNumbers', JSON.stringify(forcedNumbers));
+      localStorage.setItem('useForced', useForced ? '1' : '0');
+    } catch (e) {
+      // ignore
+    }
+  }, [forcedNumbers, useForced]);
 
   useEffect(() => {
     if (isRunning) {
@@ -39,7 +68,7 @@ export default function App() {
   const lap = () => {
     if (!isRunning) return;
     let recordMs = time;
-    if (forcedNumbers.length > 0 && forcedIndex < forcedNumbers.length) {
+    if (useForced && forcedNumbers.length > 0 && forcedIndex < forcedNumbers.length) {
       const totalSeconds = Math.floor(time / 1000);
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
@@ -55,7 +84,23 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">Stoper</h1>
+        <button
+          className="app-title"
+          onClick={() => {
+            const newVal = !useForced;
+            setUseForced(newVal);
+            setHintText(newVal ? 'FORCED' : 'REAL');
+            setShowHint(true);
+            if (hintTimer.current) clearTimeout(hintTimer.current);
+            hintTimer.current = setTimeout(() => setShowHint(false), 3000);
+          }}
+          aria-label="Przełącz używanie forsowanych numerów"
+        >
+          Stoper
+        </button>
+        {showHint && (
+          <div className="hint-bubble">{hintText}</div>
+        )}
         <div className="menu-icon" onClick={() => setShowModal(true)}>
           <span></span>
           <span></span>
