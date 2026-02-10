@@ -177,7 +177,7 @@
   max-height: 300px;
   overflow-y: auto;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
 }
 
 .lap-item {
@@ -242,15 +242,16 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 20px;
+  padding: 0;
 }
 
 .modal-content {
   background-color: #1a1a1a;
-  border-radius: 16px;
+  border-radius: 0;
   width: 100%;
   max-width: 500px;
-  max-height: 80vh;
+  max-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   border: 2px solid rgba(255, 255, 255, 0.2);

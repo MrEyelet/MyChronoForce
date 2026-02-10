@@ -4,8 +4,8 @@ import './App.css';
 export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [time, setTime] = useState(0); // ms
-  const [forcedNumbers, setForcedNumbers] = useState([]);
-  const inputRefs = useRef({});
+  const [forcedSets, setForcedSets] = useState([]);
+  const [forcedSetsText, setForcedSetsText] = useState([]);
   const [forcedIndex, setForcedIndex] = useState(0);
   const [useForced, setUseForced] = useState(true);
   const [showHint, setShowHint] = useState(false);
@@ -14,15 +14,21 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [laps, setLaps] = useState([]);
   const intervalRef = useRef(null);
+  const lapsListRef = useRef(null);
 
   const STORAGE_KEYS = {
     numbers: 'mychrono_forcedNumbers_v1',
     mode: 'mychrono_useForced_v1'
   };
 
-  const updateForcedNumbers = (arr) => {
-    const normalized = arr.map(x => (x === '' ? '' : String(x || '0').padStart(2, '0')));
-    setForcedNumbers(normalized);
+  const updateForcedSets = (sets) => {
+    const normalized = sets.map(set =>
+      Array.isArray(set)
+        ? set.map(x => (x === '' ? '' : String(x || '0').padStart(2, '0')))
+        : []
+    );
+    setForcedSets(normalized);
+    setForcedSetsText(normalized.map(set => set.join(' ')));
     try {
       localStorage.setItem(STORAGE_KEYS.numbers, JSON.stringify(normalized));
     } catch (e) {
@@ -30,17 +36,29 @@ export default function App() {
     }
   };
 
+  const forcedNumbers = forcedSets.flat();
+
   // Load persisted forced numbers and mode from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.numbers);
       if (raw) {
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) {
-          const normalized = arr.map(x => (x === '' ? '' : String(x || '0').padStart(2, '0')));
-          setForcedNumbers(normalized);
-          setForcedIndex(0);
+        const parsed = JSON.parse(raw);
+        let sets = [];
+        if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0])) {
+          sets = parsed;
+        } else if (Array.isArray(parsed)) {
+          // stary format: jedna płaska lista liczb
+          sets = [parsed];
         }
+        const normalized = sets.map(set =>
+          Array.isArray(set)
+            ? set.map(x => (x === '' ? '' : String(x || '0').padStart(2, '0')))
+            : []
+        );
+        setForcedSets(normalized);
+        setForcedSetsText(normalized.map(set => set.join(' ')));
+        setForcedIndex(0);
       }
       const mode = localStorage.getItem(STORAGE_KEYS.mode);
       if (mode !== null) setUseForced(mode === '1');
@@ -70,6 +88,13 @@ export default function App() {
       }
     };
   }, [isRunning]);
+
+  useEffect(() => {
+    if (lapsListRef.current) {
+      // Zawsze pokazuj początek listy, gdzie są najnowsze okrążenia
+      lapsListRef.current.scrollTop = 0;
+    }
+  }, [laps.length]);
 
   const formatTime = (ms) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -141,13 +166,16 @@ export default function App() {
         {laps.length > 0 && (
           <div className="laps-container">
             <div className="laps-title">Okrążenia:</div>
-            <div className="laps-list">
-              {laps.map((l, i) => (
-                <div key={i} className="lap-item">
-                  <span className="lap-number">#{laps.length - i}</span>
-                  <span className="lap-time">{formatTime(l)}</span>
-                </div>
-              ))}
+            <div className="laps-list" ref={lapsListRef}>
+              {[...laps]
+                .map((l, i) => ({ value: l, originalIndex: i }))
+                .reverse()
+                .map(({ value }, i) => (
+                  <div key={laps.length - i} className="lap-item">
+                    <span className="lap-number">#{laps.length - i}</span>
+                    <span className="lap-time">{formatTime(value)}</span>
+                  </div>
+                ))}
             </div>
           </div>
         )}
@@ -161,51 +189,52 @@ export default function App() {
             </div>
             <div className="modal-body">
               <div className="forced-numbers-list">
-                {forcedNumbers.map((n, i) => (
-                  <div key={i} className="forced-number-item">
+                {forcedSets.map((set, setIndex) => (
+                  <div key={setIndex} className="forced-number-item">
+                    <div className="forced-set-header">
+                      <span className="forced-set-label">Zestaw {setIndex + 1}</span>
+                      <button
+                        className="delete-number-btn"
+                        onClick={() => {
+                          const nextSets = forcedSets.filter((_, idx) => idx !== setIndex);
+                          updateForcedSets(nextSets);
+                          setForcedIndex(fi => Math.min(fi, nextSets.flat().length));
+                        }}
+                        aria-label={`Usuń zestaw ${setIndex + 1}`}
+                      >
+                        ×
+                      </button>
+                    </div>
                     <input
                       className="number-input"
-                      type="number"
-                      min="0"
-                      max="99"
-                      ref={(el) => { inputRefs.current[i] = el }}
-                      value={n}
+                      type="text"
+                      value={forcedSetsText[setIndex] ?? ''}
                       onChange={(e) => {
-                        const v = e.target.value.replace(/\D/g, '');
-                        const next = forcedNumbers.slice();
-                        next[i] = v;
-                        updateForcedNumbers(next);
+                        const nextText = forcedSetsText.slice();
+                        nextText[setIndex] = e.target.value;
+                        setForcedSetsText(nextText);
                       }}
                       onBlur={(e) => {
-                        let v = parseInt(e.target.value, 10);
-                        if (Number.isNaN(v)) v = 0;
-                        if (v < 0) v = 0;
-                        if (v > 99) v = 99;
-                        const s = String(v).padStart(2, '0');
-                        const next = forcedNumbers.slice();
-                        next[i] = s;
-                        updateForcedNumbers(next);
+                        const text = e.target.value || '';
+                        const values = text
+                          .split(/[\s,]+/)
+                          .filter(Boolean)
+                          .map(v => v.replace(/\D/g, ''))
+                          .filter(v => v !== '')
+                          .map(v => {
+                            let num = parseInt(v, 10);
+                            if (Number.isNaN(num)) num = 0;
+                            if (num < 0) num = 0;
+                            if (num > 99) num = 99;
+                            return String(num).padStart(2, '0');
+                          });
+                        const nextSets = forcedSets.slice();
+                        nextSets[setIndex] = values;
+                        updateForcedSets(nextSets);
+                        setForcedIndex(fi => Math.min(fi, nextSets.flat().length));
                       }}
-                      placeholder="00"
+                      placeholder="np. 34 45 56"
                     />
-                    <button
-                      className="delete-number-btn"
-                      onClick={() => {
-                        const next = forcedNumbers.filter((_, idx) => idx !== i);
-                        setForcedIndex(fi => Math.min(fi, next.length));
-                        const newRefs = {};
-                        let j = 0;
-                        for (let k = 0; k < forcedNumbers.length; k++) {
-                          if (k === i) continue;
-                          newRefs[j++] = inputRefs.current[k];
-                        }
-                        inputRefs.current = newRefs;
-                        updateForcedNumbers(next);
-                      }}
-                      aria-label={`Usuń ${n}`}
-                    >
-                      ×
-                    </button>
                   </div>
                 ))}
               </div>
@@ -213,20 +242,9 @@ export default function App() {
               <button
                 className="add-number-btn"
                 onClick={() => {
-                  const newIndex = forcedNumbers.length;
-                  const next = [...forcedNumbers, ''];
-                  updateForcedNumbers(next);
-                  setTimeout(() => {
-                    const el = inputRefs.current[newIndex];
-                    if (el && typeof el.focus === 'function') {
-                      el.focus();
-                      if (typeof el.scrollIntoView === 'function') {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-                      }
-                    }
-                  }, 0);
+                  updateForcedSets([...forcedSets, []]);
                 }}
-                aria-label="Dodaj liczbę"
+                aria-label="Dodaj zestaw"
               >
                 <span className="plus-icon">+</span>
               </button>
@@ -238,7 +256,7 @@ export default function App() {
                   const dd = String(today.getDate()).padStart(2, '0');
                   const mm = String(today.getMonth() + 1).padStart(2, '0');
                   const rr = String(today.getFullYear() % 100).padStart(2, '0');
-                  updateForcedNumbers([...forcedNumbers, dd, mm, rr]);
+                  updateForcedSets([...forcedSets, [dd, mm, rr]]);
                 }}
                 aria-label="Dzisiejsza data"
               >
@@ -249,8 +267,7 @@ export default function App() {
                 <button
                   className="clear-all-btn"
                   onClick={() => {
-                    updateForcedNumbers([]);
-                    inputRefs.current = {};
+                    updateForcedSets([]);
                     setForcedIndex(0);
                   }}
                 >
