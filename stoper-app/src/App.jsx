@@ -15,6 +15,7 @@ export default function App() {
   const [laps, setLaps] = useState([]);
   const intervalRef = useRef(null);
   const lapsListRef = useRef(null);
+  const forcedSetInputRefs = useRef({});
 
   const STORAGE_KEYS = {
     numbers: 'mychrono_forcedNumbers_v1',
@@ -208,6 +209,9 @@ export default function App() {
                     <input
                       className="number-input"
                       type="text"
+                      ref={(el) => {
+                        forcedSetInputRefs.current[setIndex] = el;
+                      }}
                       value={forcedSetsText[setIndex] ?? ''}
                       onChange={(e) => {
                         const nextText = forcedSetsText.slice();
@@ -242,7 +246,17 @@ export default function App() {
               <button
                 className="add-number-btn"
                 onClick={() => {
+                  const newIndex = forcedSets.length;
                   updateForcedSets([...forcedSets, []]);
+                  setTimeout(() => {
+                    const el = forcedSetInputRefs.current[newIndex];
+                    if (el && typeof el.focus === 'function') {
+                      el.focus();
+                      if (typeof el.scrollIntoView === 'function') {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                      }
+                    }
+                  }, 0);
                 }}
                 aria-label="Dodaj zestaw"
               >
