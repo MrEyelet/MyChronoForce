@@ -212,6 +212,7 @@ export default function App() {
                       ref={(el) => {
                         forcedSetInputRefs.current[setIndex] = el;
                       }}
+                      inputMode="numeric"
                       value={forcedSetsText[setIndex] ?? ''}
                       onChange={(e) => {
                         const nextText = forcedSetsText.slice();
@@ -220,18 +221,25 @@ export default function App() {
                       }}
                       onBlur={(e) => {
                         const text = e.target.value || '';
-                        const values = text
+                        const values = [];
+                        // Bierzemy tylko cyfry, a z każdego tokenu robimy pary (max 2 cyfry na liczbę)
+                        const tokens = text
                           .split(/[\s,]+/)
                           .filter(Boolean)
                           .map(v => v.replace(/\D/g, ''))
-                          .filter(v => v !== '')
-                          .map(v => {
-                            let num = parseInt(v, 10);
+                          .filter(v => v !== '');
+
+                        tokens.forEach(token => {
+                          for (let i = 0; i < token.length; i += 2) {
+                            const chunk = token.slice(i, i + 2);
+                            if (!chunk) continue;
+                            let num = parseInt(chunk, 10);
                             if (Number.isNaN(num)) num = 0;
                             if (num < 0) num = 0;
                             if (num > 99) num = 99;
-                            return String(num).padStart(2, '0');
-                          });
+                            values.push(String(num).padStart(2, '0'));
+                          }
+                        });
                         const nextSets = forcedSets.slice();
                         nextSets[setIndex] = values;
                         updateForcedSets(nextSets);
