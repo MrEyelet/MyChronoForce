@@ -18,6 +18,7 @@ export default function App() {
   const [laps, setLaps] = useState([]);
   const intervalRef = useRef(null);
   const lapsListRef = useRef(null);
+  const motoLapsListRef = useRef(null);
   const forcedSetInputRefs = useRef({});
 
   const STORAGE_KEYS = {
@@ -122,10 +123,17 @@ export default function App() {
 
   useEffect(() => {
     if (lapsListRef.current) {
-      // Zawsze pokazuj początek listy, gdzie są najnowsze okrążenia
+      // Zawsze pokazuj początek listy, gdzie są najnowsze okrążenia (tryb klasyczny)
       lapsListRef.current.scrollTop = 0;
     }
   }, [laps.length]);
+
+  useEffect(() => {
+    if (useMotoUI && motoLapsListRef.current) {
+      // W trybie Motorola UI przewijaj poziomą listę do prawej, żeby było widać najnowsze okrążenie
+      motoLapsListRef.current.scrollLeft = motoLapsListRef.current.scrollWidth;
+    }
+  }, [laps.length, useMotoUI]);
 
   const formatTime = (ms) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -185,7 +193,7 @@ export default function App() {
 
         {useMotoUI && laps.length > 0 && (
           <div className="laps-container laps-container-moto-ui">
-            <div className="laps-list-moto-ui">
+            <div className="laps-list-moto-ui" ref={motoLapsListRef}>
               {[...laps]
                 .map((l, i) => ({ value: l, originalIndex: i }))
                 .map(({ value }, i) => (
