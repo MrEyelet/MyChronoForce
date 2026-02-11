@@ -191,17 +191,18 @@ export default function App() {
       <div className="stopwatch-container">
         <div className="time-display">{formatTime(time)}</div>
 
-        {useMotoUI && laps.length > 0 && (
+        {useMotoUI && (
           <div className="laps-container laps-container-moto-ui">
             <div className="laps-list-moto-ui" ref={motoLapsListRef}>
-              {[...laps]
-                .map((l, i) => ({ value: l, originalIndex: i }))
-                .map(({ value }, i) => (
-                  <div key={i + 1} className="lap-pill-moto-ui">
-                    <span className="lap-pill-number">#{i + 1}</span>
-                    <span className="lap-pill-time">{formatTime(value)}</span>
-                  </div>
-                ))}
+              {laps.length > 0 &&
+                [...laps]
+                  .map((l, i) => ({ value: l, originalIndex: i }))
+                  .map(({ value }, i) => (
+                    <div key={i + 1} className="lap-pill-moto-ui">
+                      <span className="lap-pill-number">#{i + 1}</span>
+                      <span className="lap-pill-time">{formatTime(value)}</span>
+                    </div>
+                  ))}
             </div>
           </div>
         )}

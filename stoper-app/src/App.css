@@ -254,8 +254,8 @@
 }
 
 .laps-container-moto-ui {
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin-top: 16px;
+  margin-bottom: 16px;
 }
 
 .laps-list-moto-ui {
@@ -264,6 +264,7 @@
   gap: 8px;
   overflow-x: auto;
   padding: 4px 0;
+  min-height: 64px; /* trochę większy bufor, żeby główny przycisk w ogóle się nie przesuwał przy pojawieniu się pierwszego okrążenia */
 }
 
 .lap-pill-moto-ui {
