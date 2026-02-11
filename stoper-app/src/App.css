@@ -10,10 +10,11 @@
 }
 
 .app-moto-bg {
-  background-image: url('/stoper-motorola-design.png');
-  background-size: cover;
-  background-position: center;
+  background-image: url('/bottom-bar-motorola.png');
+  background-size: contain;
+  background-position: center bottom;
   background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .app-header {
