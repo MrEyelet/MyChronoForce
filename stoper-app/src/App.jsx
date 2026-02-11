@@ -216,7 +216,7 @@ export default function App() {
           }`}
           onClick={toggle}
         >
-          {isRunning ? 'ZATRZYMAJ' : 'ROZPOCZNIJ'}
+          {isRunning ? 'Zatrzymaj' : 'Rozpocznij'}
         </button>
 
         {(isRunning || time > 0) && (
@@ -225,14 +225,14 @@ export default function App() {
               className={`control-btn reset-btn ${useMotoUI ? 'control-btn-moto-ui' : ''}`}
               onClick={reset}
             >
-              RESETUJ
+              Resetuj
             </button>
             <button
               className={`control-btn lap-btn ${useMotoUI ? 'control-btn-moto-ui' : ''}`}
               onClick={lap}
               disabled={!isRunning}
             >
-              OKRĄŻENIE
+              Okrążenie
             </button>
           </div>
         )}
