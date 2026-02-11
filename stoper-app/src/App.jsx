@@ -183,6 +183,21 @@ export default function App() {
       <div className="stopwatch-container">
         <div className="time-display">{formatTime(time)}</div>
 
+        {useMotoUI && laps.length > 0 && (
+          <div className="laps-container laps-container-moto-ui">
+            <div className="laps-list-moto-ui">
+              {[...laps]
+                .map((l, i) => ({ value: l, originalIndex: i }))
+                .map(({ value }, i) => (
+                  <div key={i + 1} className="lap-pill-moto-ui">
+                    <span className="lap-pill-number">#{i + 1}</span>
+                    <span className="lap-pill-time">{formatTime(value)}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
         <button
           className={`start-stop-btn ${
             useMotoUI
@@ -197,13 +212,24 @@ export default function App() {
         </button>
 
         {(isRunning || time > 0) && (
-          <div className="control-buttons">
-            <button className="control-btn reset-btn" onClick={reset}>RESETUJ</button>
-            <button className="control-btn lap-btn" onClick={lap} disabled={!isRunning}>OKRĄŻENIE</button>
+          <div className={`control-buttons ${useMotoUI ? 'control-buttons-moto-ui' : ''}`}>
+            <button
+              className={`control-btn reset-btn ${useMotoUI ? 'control-btn-moto-ui' : ''}`}
+              onClick={reset}
+            >
+              RESETUJ
+            </button>
+            <button
+              className={`control-btn lap-btn ${useMotoUI ? 'control-btn-moto-ui' : ''}`}
+              onClick={lap}
+              disabled={!isRunning}
+            >
+              OKRĄŻENIE
+            </button>
           </div>
         )}
 
-        {laps.length > 0 && (
+        {!useMotoUI && laps.length > 0 && (
           <div className="laps-container">
             <div className="laps-title">Okrążenia:</div>
             <div className="laps-list" ref={lapsListRef}>
