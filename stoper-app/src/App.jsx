@@ -9,6 +9,7 @@ export default function App() {
   const [forcedIndex, setForcedIndex] = useState(0);
   const [useForced, setUseForced] = useState(true);
   const [useBackground, setUseBackground] = useState(false);
+  const [useMotoUI, setUseMotoUI] = useState(false);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
@@ -22,7 +23,8 @@ export default function App() {
   const STORAGE_KEYS = {
     numbers: 'mychrono_forcedNumbers_v1',
     mode: 'mychrono_useForced_v1',
-    background: 'mychrono_useBackground_v1'
+    background: 'mychrono_useBackground_v1',
+    motoUI: 'mychrono_useMotoUI_v1'
   };
 
   const updateForcedSets = (sets) => {
@@ -70,6 +72,9 @@ export default function App() {
       const bg = localStorage.getItem(STORAGE_KEYS.background);
       if (bg !== null) setUseBackground(bg === '1');
 
+      const ui = localStorage.getItem(STORAGE_KEYS.motoUI);
+      if (ui !== null) setUseMotoUI(ui === '1');
+
       setPrefsLoaded(true);
     } catch (e) {
       // ignore
@@ -91,6 +96,14 @@ export default function App() {
       localStorage.setItem(STORAGE_KEYS.background, useBackground ? '1' : '0');
     } catch (e) {}
   }, [useBackground, prefsLoaded]);
+
+  // Persist Motorola UI preference when it changes
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEYS.motoUI, useMotoUI ? '1' : '0');
+    } catch (e) {}
+  }, [useMotoUI, prefsLoaded]);
 
   useEffect(() => {
     if (isRunning) {
@@ -170,7 +183,16 @@ export default function App() {
       <div className="stopwatch-container">
         <div className="time-display">{formatTime(time)}</div>
 
-        <button className="start-stop-btn" onClick={toggle}>
+        <button
+          className={`start-stop-btn ${
+            useMotoUI
+              ? isRunning
+                ? 'start-stop-btn-moto-ui-stop'
+                : 'start-stop-btn-moto-ui'
+              : ''
+          }`}
+          onClick={toggle}
+        >
           {isRunning ? 'ZATRZYMAJ' : 'ROZPOCZNIJ'}
         </button>
 
@@ -214,6 +236,14 @@ export default function App() {
                     onChange={(e) => setUseBackground(e.target.checked)}
                   />
                   <span>Motorola background</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={useMotoUI}
+                    onChange={(e) => setUseMotoUI(e.target.checked)}
+                  />
+                  <span>Motorola UI</span>
                 </label>
               </div>
               <div className="forced-numbers-list">

@@ -135,6 +135,22 @@
   letter-spacing: 2px;
 }
 
+.start-stop-btn.start-stop-btn-moto-ui {
+  background: #7f9fb8;
+  border-radius: 999px;
+  border: none;
+  color: #f5f7ff;
+  height: 120px;
+ }
+
+.start-stop-btn.start-stop-btn-moto-ui-stop {
+  background: #ff8a8a;
+  border-radius: 999px;
+  border: none;
+  color: #fff7f7;
+  height: 120px;
+}
+
 .start-stop-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
   transform: scale(1.05);
