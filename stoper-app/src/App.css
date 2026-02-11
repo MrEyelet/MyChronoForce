@@ -1,7 +1,7 @@
 .app {
   min-height: 100vh;
   width: 100%;
-  background-color: #000000;
+  background-color: #141414;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -136,7 +136,7 @@
 }
 
 .start-stop-btn.start-stop-btn-moto-ui {
-  background: #7f9fb8;
+  background: #6b8ba5;
   border-radius: 999px;
   border: none;
   color: #f5f7ff;
@@ -164,7 +164,7 @@
 
 .start-stop-btn.start-stop-btn-moto-ui:hover,
 .start-stop-btn.start-stop-btn-moto-ui:active {
-  background-color: #7f9fb8;
+  background-color: #6b8ba5;
 }
 
 .start-stop-btn.start-stop-btn-moto-ui-stop:hover,
@@ -275,7 +275,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(10, 10, 10, 0.9);
   color: #ffffff;
   font-family: 'Courier New', monospace;
   font-size: 16px;
