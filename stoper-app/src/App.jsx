@@ -134,7 +134,7 @@ export default function App() {
             setHintText(newVal ? 'FORCED' : 'REAL');
             setShowHint(true);
             if (hintTimer.current) clearTimeout(hintTimer.current);
-            hintTimer.current = setTimeout(() => setShowHint(false), 3000);
+            hintTimer.current = setTimeout(() => setShowHint(false), 250);
           }}
           aria-label="Przełącz używanie forsowanych numerów"
         >
