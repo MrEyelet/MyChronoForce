@@ -9,6 +9,13 @@
   box-sizing: border-box;
 }
 
+.app-moto-bg {
+  background-image: url('/stoper-motorola-design.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .app-header {
   width: 100%;
   display: flex;
@@ -55,6 +62,18 @@
   z-index: 1100;
   pointer-events: none;
   opacity: 0.95;
+}
+
+.modal-settings-row {
+  margin-bottom: 16px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 14px;
 }
 
 .menu-icon {

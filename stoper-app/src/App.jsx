@@ -8,6 +8,8 @@ export default function App() {
   const [forcedSetsText, setForcedSetsText] = useState([]);
   const [forcedIndex, setForcedIndex] = useState(0);
   const [useForced, setUseForced] = useState(true);
+  const [useBackground, setUseBackground] = useState(false);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
   const hintTimer = useRef(null);
@@ -19,7 +21,8 @@ export default function App() {
 
   const STORAGE_KEYS = {
     numbers: 'mychrono_forcedNumbers_v1',
-    mode: 'mychrono_useForced_v1'
+    mode: 'mychrono_useForced_v1',
+    background: 'mychrono_useBackground_v1'
   };
 
   const updateForcedSets = (sets) => {
@@ -39,7 +42,7 @@ export default function App() {
 
   const forcedNumbers = forcedSets.flat();
 
-  // Load persisted forced numbers and mode from localStorage
+  // Load persisted forced numbers and preferences from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.numbers);
@@ -63,6 +66,11 @@ export default function App() {
       }
       const mode = localStorage.getItem(STORAGE_KEYS.mode);
       if (mode !== null) setUseForced(mode === '1');
+
+      const bg = localStorage.getItem(STORAGE_KEYS.background);
+      if (bg !== null) setUseBackground(bg === '1');
+
+      setPrefsLoaded(true);
     } catch (e) {
       // ignore
     }
@@ -70,10 +78,19 @@ export default function App() {
 
   // Persist mode when it changes
   useEffect(() => {
+    if (!prefsLoaded) return;
     try {
       localStorage.setItem(STORAGE_KEYS.mode, useForced ? '1' : '0');
     } catch (e) {}
-  }, [useForced]);
+  }, [useForced, prefsLoaded]);
+
+  // Persist background preference when it changes
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEYS.background, useBackground ? '1' : '0');
+    } catch (e) {}
+  }, [useBackground, prefsLoaded]);
 
   useEffect(() => {
     if (isRunning) {
@@ -124,7 +141,7 @@ export default function App() {
   };
 
   return (
-    <div className="app">
+    <div className={`app ${useBackground ? 'app-moto-bg' : ''}`}>
       <header className="app-header">
         <button
           className="app-title"
@@ -189,6 +206,16 @@ export default function App() {
               <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Zamknij">×</button>
             </div>
             <div className="modal-body">
+              <div className="modal-settings-row">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={useBackground}
+                    onChange={(e) => setUseBackground(e.target.checked)}
+                  />
+                  <span>Motorola background</span>
+                </label>
+              </div>
               <div className="forced-numbers-list">
                 {forcedSets.map((set, setIndex) => (
                   <div key={setIndex} className="forced-number-item">
