@@ -143,21 +143,43 @@ export default function App() {
     return `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}.${String(centis).padStart(2,'0')}`;
   };
 
-  const toggle = () => setIsRunning(r => !r);
-  const reset = () => { setIsRunning(false); setTime(0); setLaps([]); setForcedIndex(0); };
+  const applyForcedCentiseconds = (baseMs) => {
+    if (!(useForced && forcedNumbers.length > 0 && forcedIndex < forcedNumbers.length)) {
+      return baseMs;
+    }
+
+    const totalSeconds = Math.floor(baseMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const raw = parseInt(forcedNumbers[forcedIndex], 10);
+    const centis = Number.isNaN(raw)
+      ? Math.floor((baseMs % 1000) / 10)
+      : Math.max(0, Math.min(99, raw));
+
+    const recordMs = minutes * 60000 + seconds * 1000 + centis * 10;
+    setForcedIndex(forcedIndex + 1);
+    return recordMs;
+  };
+
+  const toggle = () => {
+    // przy zatrzymaniu wymuszamy setne sekundy
+    if (isRunning) {
+      setTime(prev => applyForcedCentiseconds(prev));
+      setIsRunning(false);
+    } else {
+      setIsRunning(true);
+    }
+  };
+  const reset = () => {
+    setIsRunning(false);
+    setTime(0);
+    setLaps([]);
+    // NIE zerujemy forcedIndex, żeby po wykorzystaniu całego zestawu
+    // kolejny start korzystał z następnego zestawu (jeśli istnieje)
+  };
   const lap = () => {
     if (!isRunning) return;
-    let recordMs = time;
-    if (useForced && forcedNumbers.length > 0 && forcedIndex < forcedNumbers.length) {
-      const totalSeconds = Math.floor(time / 1000);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      const raw = parseInt(forcedNumbers[forcedIndex], 10);
-      const centis = Number.isNaN(raw) ? Math.floor((time % 1000) / 10) : Math.max(0, Math.min(99, raw));
-      recordMs = minutes * 60000 + seconds * 1000 + centis * 10;
-      const nextIndex = forcedIndex + 1;
-      setForcedIndex(nextIndex);
-    }
+    const recordMs = applyForcedCentiseconds(time);
     setLaps(prev => [...prev, recordMs]);
   };
 
