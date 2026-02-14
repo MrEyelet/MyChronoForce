@@ -8,7 +8,6 @@ export default function App() {
   const [forcedSetsText, setForcedSetsText] = useState([]);
   const [forcedIndex, setForcedIndex] = useState(0);
   const [useForced, setUseForced] = useState(true);
-  const [useBackground, setUseBackground] = useState(false);
   const [useMotoUI, setUseMotoUI] = useState(false);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -24,7 +23,6 @@ export default function App() {
   const STORAGE_KEYS = {
     numbers: 'mychrono_forcedNumbers_v1',
     mode: 'mychrono_useForced_v1',
-    background: 'mychrono_useBackground_v1',
     motoUI: 'mychrono_useMotoUI_v1'
   };
 
@@ -70,9 +68,6 @@ export default function App() {
       const mode = localStorage.getItem(STORAGE_KEYS.mode);
       if (mode !== null) setUseForced(mode === '1');
 
-      const bg = localStorage.getItem(STORAGE_KEYS.background);
-      if (bg !== null) setUseBackground(bg === '1');
-
       const ui = localStorage.getItem(STORAGE_KEYS.motoUI);
       if (ui !== null) setUseMotoUI(ui === '1');
 
@@ -91,13 +86,6 @@ export default function App() {
   }, [useForced, prefsLoaded]);
 
   // Persist background preference when it changes
-  useEffect(() => {
-    if (!prefsLoaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEYS.background, useBackground ? '1' : '0');
-    } catch (e) {}
-  }, [useBackground, prefsLoaded]);
-
   // Persist Motorola UI preference when it changes
   useEffect(() => {
     if (!prefsLoaded) return;
@@ -184,7 +172,7 @@ export default function App() {
   };
 
   return (
-    <div className={`app ${useBackground ? 'app-moto-bg' : ''}`}>
+    <div className="app app-moto-bg">
       <header className="app-header">
         <button
           className="app-title"
@@ -284,16 +272,8 @@ export default function App() {
               <h2>Rutyny</h2>
               <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Zamknij">×</button>
             </div>
-            <div className="modal-body">
+              <div className="modal-body">
               <div className="modal-settings-row">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={useBackground}
-                    onChange={(e) => setUseBackground(e.target.checked)}
-                  />
-                  <span>Motorola background</span>
-                </label>
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
