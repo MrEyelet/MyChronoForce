@@ -8,6 +8,8 @@ export default function App() {
   const [forcedSetsText, setForcedSetsText] = useState([]);
   const [forcedIndex, setForcedIndex] = useState(0);
   const [useForced, setUseForced] = useState(true);
+  const [forceNumber, setForceNumber] = useState('');
+  const [forceNumberPhase, setForceNumberPhase] = useState(true);
   const [useMotoUI, setUseMotoUI] = useState(false);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -18,12 +20,14 @@ export default function App() {
   const intervalRef = useRef(null);
   const lapsListRef = useRef(null);
   const motoLapsListRef = useRef(null);
+  const forceNumberTimeoutRef = useRef(null);
   const forcedSetInputRefs = useRef({});
 
   const STORAGE_KEYS = {
     numbers: 'mychrono_forcedNumbers_v1',
     mode: 'mychrono_useForced_v1',
-    motoUI: 'mychrono_useMotoUI_v1'
+    motoUI: 'mychrono_useMotoUI_v1',
+    forceNumber: 'mychrono_forceNumber_v1'
   };
 
   const updateForcedSets = (sets) => {
@@ -42,6 +46,21 @@ export default function App() {
   };
 
   const forcedNumbers = forcedSets.flat();
+
+  // Gdy zmieni się forceNumber lub lista zestawów, ustaw fazę forceNumber tylko wtedy,
+  // gdy jest ustawiony forceNumber i istnieją jakieś zestawy. Wyczyszczenie forceNumber
+  // wyłącza tę fazę.
+  useEffect(() => {
+    if (!forceNumber) {
+      setForceNumberPhase(false);
+      if (forceNumberTimeoutRef.current) {
+        clearTimeout(forceNumberTimeoutRef.current);
+        forceNumberTimeoutRef.current = null;
+      }
+    } else if (forcedNumbers.length > 0) {
+      setForceNumberPhase(true);
+    }
+  }, [forceNumber, forcedNumbers.length]);
 
   // Load persisted forced numbers and preferences from localStorage
   useEffect(() => {
@@ -71,6 +90,9 @@ export default function App() {
       const ui = localStorage.getItem(STORAGE_KEYS.motoUI);
       if (ui !== null) setUseMotoUI(ui === '1');
 
+      const storedForceNumber = localStorage.getItem(STORAGE_KEYS.forceNumber);
+      if (storedForceNumber !== null) setForceNumber(storedForceNumber);
+
       setPrefsLoaded(true);
     } catch (e) {
       // ignore
@@ -93,6 +115,28 @@ export default function App() {
       localStorage.setItem(STORAGE_KEYS.motoUI, useMotoUI ? '1' : '0');
     } catch (e) {}
   }, [useMotoUI, prefsLoaded]);
+
+  // Persist forceNumber when it changes
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    try {
+      if (!forceNumber) {
+        localStorage.removeItem(STORAGE_KEYS.forceNumber);
+      } else {
+        localStorage.setItem(STORAGE_KEYS.forceNumber, forceNumber);
+      }
+    } catch (e) {}
+  }, [forceNumber, prefsLoaded]);
+
+  // Sprzątanie timera forceNumber przy odmontowaniu komponentu
+  useEffect(() => {
+    return () => {
+      if (forceNumberTimeoutRef.current) {
+        clearTimeout(forceNumberTimeoutRef.current);
+        forceNumberTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (isRunning) {
@@ -132,21 +176,43 @@ export default function App() {
   };
 
   const applyForcedCentiseconds = (baseMs) => {
-    if (!(useForced && forcedNumbers.length > 0 && forcedIndex < forcedNumbers.length)) {
-      return baseMs;
-    }
-
     const totalSeconds = Math.floor(baseMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    const raw = parseInt(forcedNumbers[forcedIndex], 10);
-    const centis = Number.isNaN(raw)
-      ? Math.floor((baseMs % 1000) / 10)
-      : Math.max(0, Math.min(99, raw));
+    const naturalCentis = Math.floor((baseMs % 1000) / 10);
 
-    const recordMs = minutes * 60000 + seconds * 1000 + centis * 10;
-    setForcedIndex(forcedIndex + 1);
-    return recordMs;
+    // Najpierw forceNumber: sekunda + setne = forceNumber (jeśli ustawione i jesteśmy w tej fazie)
+    if (useForced && forceNumber && forceNumberPhase) {
+      const target = parseInt(forceNumber, 10);
+      if (!Number.isNaN(target)) {
+        let centis = target - seconds;
+        if (centis < 0) centis = 0;
+        if (centis > 99) centis = 99;
+        const recordMs = minutes * 60000 + seconds * 1000 + centis * 10;
+        // Jeśli istnieją zestawy, po pierwszym użyciu forceNumber ustaw timer
+        // który po 30 sekundach przełączy nas na zestawy
+        if (forcedNumbers.length > 0 && !forceNumberTimeoutRef.current) {
+          forceNumberTimeoutRef.current = setTimeout(() => {
+            setForceNumberPhase(false);
+            forceNumberTimeoutRef.current = null;
+          }, 30000);
+        }
+        return recordMs;
+      }
+    }
+
+    if (useForced && forcedNumbers.length > 0 && forcedIndex < forcedNumbers.length) {
+      const raw = parseInt(forcedNumbers[forcedIndex], 10);
+      const centis = Number.isNaN(raw)
+        ? naturalCentis
+        : Math.max(0, Math.min(99, raw));
+
+      const recordMs = minutes * 60000 + seconds * 1000 + centis * 10;
+      setForcedIndex(forcedIndex + 1);
+      return recordMs;
+    }
+
+    return baseMs;
   };
 
   const toggle = () => {
@@ -162,6 +228,14 @@ export default function App() {
     setIsRunning(false);
     setTime(0);
     setLaps([]);
+    // Jeśli używaliśmy forceNumber i mamy zestawy, po resecie przechodzimy do zestawów
+    if (forceNumber && forcedNumbers.length > 0) {
+      setForceNumberPhase(false);
+    }
+    if (forceNumberTimeoutRef.current) {
+      clearTimeout(forceNumberTimeoutRef.current);
+      forceNumberTimeoutRef.current = null;
+    }
     // NIE zerujemy forcedIndex, żeby po wykorzystaniu całego zestawu
     // kolejny start korzystał z następnego zestawu (jeśli istnieje)
   };
@@ -276,11 +350,37 @@ export default function App() {
               <div className="modal-settings-row">
                 <label className="checkbox-label">
                   <input
-                    type="checkbox"
-                    checked={useMotoUI}
+                   type="checkbox"
+                     checked={useMotoUI}
                     onChange={(e) => setUseMotoUI(e.target.checked)}
                   />
                   <span>Motorola UI</span>
+                </label>
+              </div>
+
+              <div className="modal-settings-row">
+                <label className="checkbox-label">
+                  <span>Force number (sekunda + setne)</span>
+                  <input
+                    className="number-input"
+                    type="number"
+                    min="0"
+                    max="99"
+                    value={forceNumber}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                      if (raw === '') {
+                        setForceNumber('');
+                      } else {
+                        let num = parseInt(raw, 10);
+                        if (Number.isNaN(num)) num = 0;
+                        if (num < 0) num = 0;
+                        if (num > 99) num = 99;
+                        setForceNumber(String(num));
+                      }
+                    }}
+                    placeholder="np. 25"
+                  />
                 </label>
               </div>
               <div className="forced-numbers-list">
