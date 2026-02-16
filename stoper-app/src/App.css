@@ -100,7 +100,7 @@
 .stopwatch-container {
   flex: 1;
   width: 100%;
-  max-width: 400px;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -121,7 +121,7 @@
 
 .start-stop-btn {
   width: 100%;
-  max-width: 320px; /* szerokość mniej więcej dwóch mniejszych przycisków */
+  max-width: 320px; /* szerokość mniej więcej dwóch mniejszych przycisków (dla klasycznego UI) */
   height: 64px;
   border-radius: 8px;
   border: 2px solid #ffffff;
@@ -142,6 +142,8 @@
   color: #f5f7ff;
   height: 120px;
   text-transform: none;
+  max-width: 100%;
+  width: 100%;
  }
 
 .start-stop-btn.start-stop-btn-moto-ui-stop {
@@ -151,15 +153,16 @@
   color: #fff7f7;
   height: 120px;
   text-transform: none;
+  max-width: 100%;
+  width: 100%;
 }
 
 .start-stop-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  transform: scale(1.05);
 }
 
 .start-stop-btn:active {
-  transform: scale(0.95);
+  opacity: 0.85;
 }
 
 .start-stop-btn.start-stop-btn-moto-ui:hover,
@@ -183,7 +186,7 @@
 .control-buttons-moto-ui {
   flex-direction: column;
   gap: 12px;
-  max-width: 320px;
+  max-width: 100%;
 }
 
 .control-btn {
@@ -217,7 +220,7 @@
 }
 
 .control-btn:active {
-  transform: scale(0.95);
+  opacity: 0.85;
 }
 
 .control-btn-moto-ui:hover,
@@ -648,6 +651,22 @@
 
 .clear-all-btn:active {
   transform: scale(0.95);
+}
+
+/* Usuń domyślną niebieską obwódkę/tap highlight przy klikaniu przycisków */
+button {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+button::-moz-focus-inner {
+  border: 0;
 }
 
 
