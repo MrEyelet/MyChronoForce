@@ -1,0 +1,17 @@
+{
+  "name": "MyChronoForce",
+  "short_name": "Chrono",
+  "start_url": "/MyChronoForce/",
+  "scope": "/MyChronoForce/",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#141414",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
