@@ -175,6 +175,23 @@ export default function App() {
     return `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}.${String(centis).padStart(2,'0')}`;
   };
 
+  const formatDisplayTime = (ms) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    const centisReal = Math.floor((ms % 1000) / 10);
+    const centiTicks = Math.floor(ms / 10);
+
+    // Przyspieszony tylko wizualnie obrót setnych, logika czasu zostaje bez zmian
+    const speedFactor = 3;
+    const centisVisual = isRunning
+      ? (centiTicks * speedFactor) % 100
+      : centisReal;
+
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centisVisual).padStart(2, '0')}`;
+  };
+
   const applyForcedCentiseconds = (baseMs) => {
     const totalSeconds = Math.floor(baseMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -273,7 +290,7 @@ export default function App() {
       </header>
 
       <div className="stopwatch-container">
-        <div className="time-display">{formatTime(time)}</div>
+        <div className="time-display">{formatDisplayTime(time)}</div>
 
         {useMotoUI && (
           <div className="laps-container laps-container-moto-ui">
