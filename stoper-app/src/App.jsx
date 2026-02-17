@@ -206,14 +206,6 @@ export default function App() {
         if (centis < 0) centis = 0;
         if (centis > 99) centis = 99;
         const recordMs = minutes * 60000 + seconds * 1000 + centis * 10;
-        // Jeśli istnieją zestawy, po pierwszym użyciu forceNumber ustaw timer
-        // który po 30 sekundach przełączy nas na zestawy
-        if (forcedNumbers.length > 0 && !forceNumberTimeoutRef.current) {
-          forceNumberTimeoutRef.current = setTimeout(() => {
-            setForceNumberPhase(false);
-            forceNumberTimeoutRef.current = null;
-          }, 30000);
-        }
         return recordMs;
       }
     }
@@ -232,10 +224,26 @@ export default function App() {
     return baseMs;
   };
 
+  const scheduleForceNumberTimeout = () => {
+    if (!useForced || !forceNumber || forcedNumbers.length === 0) return;
+
+    if (forceNumberTimeoutRef.current) {
+      clearTimeout(forceNumberTimeoutRef.current);
+    }
+
+    forceNumberTimeoutRef.current = setTimeout(() => {
+      setForceNumberPhase(false);
+      forceNumberTimeoutRef.current = null;
+    }, 30000);
+  };
+
   const toggle = () => {
     // przy zatrzymaniu wymuszamy setne sekundy
     if (isRunning) {
       setTime(prev => applyForcedCentiseconds(prev));
+      if (forceNumberPhase) {
+        scheduleForceNumberTimeout();
+      }
       setIsRunning(false);
     } else {
       setIsRunning(true);
