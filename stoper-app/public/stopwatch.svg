@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Stopwatch icon">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#6effa3" />
+      <stop offset="100%" stop-color="#00c853" />
+    </linearGradient>
+  </defs>
+  <rect x="20" y="4" width="24" height="8" rx="2" ry="2" fill="#222" />
+  <circle cx="32" cy="34" r="22" fill="url(#bg)" stroke="#111" stroke-width="2" />
+  <circle cx="32" cy="34" r="18" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2" />
+  <line x1="32" y1="34" x2="32" y2="18" stroke="#111" stroke-width="3" stroke-linecap="round" />
+  <line x1="32" y1="34" x2="42" y2="38" stroke="#111" stroke-width="3" stroke-linecap="round" />
+  <circle cx="32" cy="34" r="2.5" fill="#111" />
+</svg>

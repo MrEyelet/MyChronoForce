@@ -1,6 +1,6 @@
 {
-  "name": "MyChronoForce",
-  "short_name": "Chrono",
+  "name": "Stoper",
+  "short_name": "Stoper",
   "start_url": "/MyChronoForce/",
   "scope": "/MyChronoForce/",
   "display": "standalone",
@@ -8,10 +8,10 @@
   "theme_color": "#141414",
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "/stopwatch.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
