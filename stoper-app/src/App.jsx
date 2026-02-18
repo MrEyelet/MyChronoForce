@@ -504,12 +504,13 @@ export default function App() {
                 Dzisiejsza data
               </button>
 
-              {forcedNumbers.length > 0 && (
+              {(forcedNumbers.length > 0 || forceNumber) && (
                 <button
                   className="clear-all-btn"
                   onClick={() => {
                     updateForcedSets([]);
                     setForcedIndex(0);
+                    setForceNumber('');
                   }}
                 >
                   Wyczyść wszystkie
