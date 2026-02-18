@@ -224,7 +224,9 @@ export default function App() {
   };
 
   const scheduleForceNumberTimeout = () => {
-    if (!useForced || !forceNumber || forcedNumbers.length === 0) return;
+    // Timeout 30s ma działać zawsze, gdy używamy forceNumber,
+    // niezależnie od tego, czy istnieją zestawy.
+    if (!useForced || !forceNumber) return;
 
     if (forceNumberTimeoutRef.current) {
       clearTimeout(forceNumberTimeoutRef.current);
@@ -252,8 +254,9 @@ export default function App() {
     setIsRunning(false);
     setTime(0);
     setLaps([]);
-    // Jeśli używaliśmy forceNumber i mamy zestawy, po resecie przechodzimy do zestawów
-    if (forceNumber && forcedNumbers.length > 0) {
+    // Jeśli używaliśmy forceNumber, po resecie kończymy jego fazę;
+    // jeżeli są zestawy, przechodzimy do nich, jeżeli nie ma – stoper działa normalnie.
+    if (forceNumber) {
       setForceNumberPhase(false);
     }
     if (forceNumberTimeoutRef.current) {
