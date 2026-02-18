@@ -47,9 +47,8 @@ export default function App() {
 
   const forcedNumbers = forcedSets.flat();
 
-  // Gdy zmieni się forceNumber lub lista zestawów, ustaw fazę forceNumber tylko wtedy,
-  // gdy jest ustawiony forceNumber i istnieją jakieś zestawy. Wyczyszczenie forceNumber
-  // wyłącza tę fazę.
+  // Gdy zmieni się forceNumber, ustaw fazę forceNumber, jeśli jest ustawiony.
+  // Wyczyszczenie forceNumber wyłącza tę fazę.
   useEffect(() => {
     if (!forceNumber) {
       setForceNumberPhase(false);
@@ -57,10 +56,10 @@ export default function App() {
         clearTimeout(forceNumberTimeoutRef.current);
         forceNumberTimeoutRef.current = null;
       }
-    } else if (forcedNumbers.length > 0) {
+    } else {
       setForceNumberPhase(true);
     }
-  }, [forceNumber, forcedNumbers.length]);
+  }, [forceNumber]);
 
   // Load persisted forced numbers and preferences from localStorage
   useEffect(() => {
