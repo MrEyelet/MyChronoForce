@@ -10,6 +10,8 @@ export default function App() {
   const [useForced, setUseForced] = useState(true);
   const [forceNumber, setForceNumber] = useState('');
   const [forceNumberPhase, setForceNumberPhase] = useState(true);
+  const [useCurrentTimeSet, setUseCurrentTimeSet] = useState(false);
+  const [currentTimeSetStep, setCurrentTimeSetStep] = useState(0);
   const [useMotoUI, setUseMotoUI] = useState(false);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -27,7 +29,8 @@ export default function App() {
     numbers: 'mychrono_forcedNumbers_v1',
     mode: 'mychrono_useForced_v1',
     motoUI: 'mychrono_useMotoUI_v1',
-    forceNumber: 'mychrono_forceNumber_v1'
+    forceNumber: 'mychrono_forceNumber_v1',
+    currentTimeSet: 'mychrono_useCurrentTimeSet_v1'
   };
 
   const updateForcedSets = (sets) => {
@@ -92,6 +95,9 @@ export default function App() {
       const storedForceNumber = localStorage.getItem(STORAGE_KEYS.forceNumber);
       if (storedForceNumber !== null) setForceNumber(storedForceNumber);
 
+      const storedCurrentTimeSet = localStorage.getItem(STORAGE_KEYS.currentTimeSet);
+      if (storedCurrentTimeSet !== null) setUseCurrentTimeSet(storedCurrentTimeSet === '1');
+
       setPrefsLoaded(true);
     } catch (e) {
       // ignore
@@ -114,6 +120,14 @@ export default function App() {
       localStorage.setItem(STORAGE_KEYS.motoUI, useMotoUI ? '1' : '0');
     } catch (e) {}
   }, [useMotoUI, prefsLoaded]);
+
+  // Persist current time set preference when it changes
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEYS.currentTimeSet, useCurrentTimeSet ? '1' : '0');
+    } catch (e) {}
+  }, [useCurrentTimeSet, prefsLoaded]);
 
   // Persist forceNumber when it changes
   useEffect(() => {
@@ -220,6 +234,33 @@ export default function App() {
       return recordMs;
     }
 
+    // Specjalny dynamiczny zestaw: aktualny czas HH:MM+1
+    // Działa tylko wtedy, gdy:
+    // - mamy włączone forced,
+    // - nie ma już żadnych statycznych zestawów do wykorzystania,
+    // - w modalu zaznaczona jest opcja "aktualny czas".
+    if (useForced && useCurrentTimeSet && (forcedNumbers.length === 0 || forcedIndex >= forcedNumbers.length)) {
+      const now = new Date();
+      const hour = now.getHours() % 100; // 0-23 -> 0-23
+      const minutePlusOne = now.getMinutes() + 1; // 1-60
+
+      let value;
+      if (currentTimeSetStep === 0) {
+        value = hour;
+        setCurrentTimeSetStep(1);
+      } else if (currentTimeSetStep === 1) {
+        value = minutePlusOne;
+        setCurrentTimeSetStep(2);
+      } else {
+        // Po dwóch użyciach (HH i MM+1) stoper działa już normalnie
+        return baseMs;
+      }
+
+      const centis = Math.max(0, Math.min(99, value));
+      const recordMs = minutes * 60000 + seconds * 1000 + centis * 10;
+      return recordMs;
+    }
+
     return baseMs;
   };
 
@@ -263,6 +304,7 @@ export default function App() {
       clearTimeout(forceNumberTimeoutRef.current);
       forceNumberTimeoutRef.current = null;
     }
+    setCurrentTimeSetStep(0);
     // NIE zerujemy forcedIndex, żeby po wykorzystaniu całego zestawu
     // kolejny start korzystał z następnego zestawu (jeśli istnieje)
   };
@@ -414,7 +456,7 @@ export default function App() {
                 {forcedSets.map((set, setIndex) => (
                   <div key={setIndex} className="forced-number-item">
                     <div className="forced-set-header">
-                      <span className="forced-set-label">Zestaw {setIndex + 1}</span>
+                      <span className="forced-set-label">#{setIndex + 1}</span>
                       <button
                         className="delete-number-btn"
                         onClick={() => {
@@ -504,6 +546,22 @@ export default function App() {
                 aria-label="Dzisiejsza data"
               >
                 Dzisiejsza data
+              </button>
+
+              <button
+                className={`add-number-btn ${useCurrentTimeSet ? 'current-time-btn-active' : ''}`}
+                onClick={() => {
+                  setUseCurrentTimeSet(v => !v);
+                  setCurrentTimeSetStep(0);
+                }}
+                aria-label="Aktualny czas (HH:MM+1)"
+              >
+                <span>Aktualny czas (HH:MM+1)</span>
+                {useCurrentTimeSet && (
+                  <span style={{ marginLeft: '8px', color: 'limegreen', fontWeight: '600' }}>
+                    aktywne
+                  </span>
+                )}
               </button>
 
               {(forcedNumbers.length > 0 || forceNumber) && (

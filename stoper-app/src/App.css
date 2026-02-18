@@ -515,12 +515,28 @@
 
 .forced-number-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   padding: 16px 20px;
+}
+
+.forced-set-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  margin-right: 12px;
+}
+
+.forced-set-label {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.forced-number-item .number-input {
+  flex: 1;
 }
 
 .forced-number-value {
