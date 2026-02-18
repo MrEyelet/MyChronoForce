@@ -292,6 +292,7 @@ export default function App() {
     }
   };
   const reset = () => {
+    const shouldDisableCurrentTimeSet = useCurrentTimeSet && currentTimeSetStep > 0;
     setIsRunning(false);
     setTime(0);
     setLaps([]);
@@ -305,6 +306,9 @@ export default function App() {
       forceNumberTimeoutRef.current = null;
     }
     setCurrentTimeSetStep(0);
+    if (shouldDisableCurrentTimeSet) {
+      setUseCurrentTimeSet(false);
+    }
     // NIE zerujemy forcedIndex, żeby po wykorzystaniu całego zestawu
     // kolejny start korzystał z następnego zestawu (jeśli istnieje)
   };
