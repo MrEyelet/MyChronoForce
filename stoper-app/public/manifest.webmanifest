@@ -1,8 +1,8 @@
 {
   "name": "Stoper",
   "short_name": "Stoper",
-  "start_url": "/MyChronoForce/",
-  "scope": "/MyChronoForce/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#141414",
   "theme_color": "#141414",
